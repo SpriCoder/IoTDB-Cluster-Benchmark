@@ -1,0 +1,46 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+generalConfig:
+  # The number of running thread
+  clientNumber: 5
+  # The number of operation
+  operationNumber: 1000
+  # The proportion of operation, order is Op1:Op2
+  # Op1: register data node
+  # Op2: query data node
+  operationProportion: 1:1
+  # The precision of result, unit: %
+  resultPrecision: 0.1
+  # The seed of data random
+  dataSeed: 666
+
+# The config of config_node
+configNodeConfig:
+  endpoints:
+    -
+      host: 127.0.0.1
+      port: 22227
+
+# The config of data_node
+dataNodeConfig:
+  # The length of generated IP
+  ipLength: 10
+  # The start port of data_node
+  startPort: 6667
