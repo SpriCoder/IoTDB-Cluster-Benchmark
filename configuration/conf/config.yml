@@ -39,10 +39,16 @@ configNodeConfig:
     -
       host: 127.0.0.1
       port: 22227
+  # timeout, unit: ms
+  timeOut: 2000
 
 # The config of data_node
 dataNodeConfig:
+  # The number of dataNode
+  number: 5
   # The length of generated IP
   ipLength: 10
   # The start port of data_node
   startPort: 6667
+  # timeout, unit: ms
+  timeOut: 2000

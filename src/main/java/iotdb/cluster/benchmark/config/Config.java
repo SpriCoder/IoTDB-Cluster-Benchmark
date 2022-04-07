@@ -67,9 +67,12 @@ public class Config {
     configProperties.addProperty("GeneralConfig", "logInterval", generalConfig.logInterval);
 
     configProperties.addProperty("ConfigNodeConfig", "endpoints", configNodeConfig.endpoints);
+    configProperties.addProperty("ConfigNodeConfig", "timeOut", configNodeConfig.timeOut);
 
+    configProperties.addProperty("DataNodeConfig", "number", dataNodeConfig.number);
     configProperties.addProperty("DataNodeConfig", "ipLength", dataNodeConfig.ipLength);
     configProperties.addProperty("DataNodeConfig", "startPort", dataNodeConfig.startPort);
+    configProperties.addProperty("DataNodeConfig", "timeOut", dataNodeConfig.timeOut);
 
     return configProperties;
   }
@@ -168,6 +171,7 @@ public class Config {
 
   public static class ConfigNodeConfig {
     private List<Endpoint> endpoints = Collections.singletonList(new Endpoint());
+    private int timeOut = 2000;
 
     public List<Endpoint> getEndpoints() {
       return endpoints;
@@ -175,6 +179,14 @@ public class Config {
 
     public void setEndpoints(List<Endpoint> endpoints) {
       this.endpoints = endpoints;
+    }
+
+    public int getTimeOut() {
+      return timeOut;
+    }
+
+    public void setTimeOut(int timeOut) {
+      this.timeOut = timeOut;
     }
 
     @Override
@@ -186,18 +198,28 @@ public class Config {
         return false;
       }
       ConfigNodeConfig that = (ConfigNodeConfig) o;
-      return Objects.equals(endpoints, that.endpoints);
+      return Objects.equals(endpoints, that.endpoints) && timeOut == that.timeOut;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(endpoints);
+      return Objects.hash(endpoints, timeOut);
     }
   }
 
   public static class DataNodeConfig {
+    private int number = 5;
     private int ipLength = 10;
     private int startPort = 6667;
+    private int timeOut = 2000;
+
+    public int getNumber() {
+      return number;
+    }
+
+    public void setNumber(int number) {
+      this.number = number;
+    }
 
     public int getIpLength() {
       return ipLength;
@@ -215,6 +237,14 @@ public class Config {
       this.startPort = startPort;
     }
 
+    public int getTimeOut() {
+      return timeOut;
+    }
+
+    public void setTimeOut(int timeOut) {
+      this.timeOut = timeOut;
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) {
@@ -224,12 +254,15 @@ public class Config {
         return false;
       }
       DataNodeConfig that = (DataNodeConfig) o;
-      return ipLength == that.ipLength && startPort == that.startPort;
+      return number == that.number
+          && ipLength == that.ipLength
+          && startPort == that.startPort
+          && timeOut == that.timeOut;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(ipLength, startPort);
+      return Objects.hash(number, ipLength, startPort, timeOut);
     }
   }
 }
