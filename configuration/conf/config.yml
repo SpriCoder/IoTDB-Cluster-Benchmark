@@ -38,7 +38,7 @@ configNodeConfig:
   endpoints:
     -
       host: 127.0.0.1
-      port: 22227
+      port: 22277
   # timeout, unit: ms
   timeOut: 2000
 
