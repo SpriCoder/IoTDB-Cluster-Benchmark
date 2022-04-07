@@ -25,9 +25,9 @@ public class Status {
   /** Whether is ok */
   private final boolean isOk;
   /** The cost time of query */
-  private long costTime;
+  private long costTime = 0L;
   /** The result point of query */
-  private int queryResultPointNum;
+  private int queryResultPointNum = 0;
   /** The exception occurred */
   private Exception exception;
   /** errorMessage is our self-defined message used to logged, it can be error SQL or anything */

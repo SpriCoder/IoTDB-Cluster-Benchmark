@@ -64,6 +64,7 @@ public class Config {
         "GeneralConfig", "operationProportion", generalConfig.operationProportion);
     configProperties.addProperty("GeneralConfig", "resultPrecision", generalConfig.resultPrecision);
     configProperties.addProperty("GeneralConfig", "dataSeed", generalConfig.dataSeed);
+    configProperties.addProperty("GeneralConfig", "logInterval", generalConfig.logInterval);
 
     configProperties.addProperty("ConfigNodeConfig", "endpoints", configNodeConfig.endpoints);
 
@@ -86,6 +87,7 @@ public class Config {
     private String operationProportion = "1:1";
     private double resultPrecision = 0.1;
     private long dataSeed = 666L;
+    private int logInterval = 5;
 
     public int getClientNumber() {
       return clientNumber;
@@ -127,6 +129,14 @@ public class Config {
       this.dataSeed = dataSeed;
     }
 
+    public int getLogInterval() {
+      return logInterval;
+    }
+
+    public void setLogInterval(int logInterval) {
+      this.logInterval = logInterval;
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) {
@@ -140,13 +150,19 @@ public class Config {
           && operationNumber == that.operationNumber
           && Double.compare(that.resultPrecision, resultPrecision) == 0
           && dataSeed == that.dataSeed
-          && Objects.equals(operationProportion, that.operationProportion);
+          && Objects.equals(operationProportion, that.operationProportion)
+          && logInterval == that.logInterval;
     }
 
     @Override
     public int hashCode() {
       return Objects.hash(
-          clientNumber, operationNumber, operationProportion, resultPrecision, dataSeed);
+          clientNumber,
+          operationNumber,
+          operationProportion,
+          resultPrecision,
+          dataSeed,
+          logInterval);
     }
   }
 

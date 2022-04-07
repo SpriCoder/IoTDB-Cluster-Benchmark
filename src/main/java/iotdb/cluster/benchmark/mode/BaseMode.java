@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -80,7 +79,7 @@ public class BaseMode {
   }
 
   protected void postCheck() {
-    List<Operation> operations = Collections.singletonList(Operation.CONFIG_NODE);
+    List<Operation> operations = Operation.getAllOperations();
     List<Measurement> threadsMeasurements = new ArrayList<>();
     finalMeasure(measurement, threadsMeasurements, start, clients, operations);
   }

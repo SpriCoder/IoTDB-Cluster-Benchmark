@@ -24,10 +24,10 @@ import iotdb.cluster.benchmark.config.ConfigDescriptor;
 import iotdb.cluster.benchmark.measurement.Measurement;
 import iotdb.cluster.benchmark.measurement.Status;
 import iotdb.cluster.benchmark.operation.Operation;
+import iotdb.cluster.benchmark.operation.OperationController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Random;
 import java.util.concurrent.*;
 
 public class Client implements Runnable {
@@ -36,10 +36,16 @@ public class Client implements Runnable {
 
   /** The id of client */
   protected final int clientThreadId;
-
+  /** The current number of Operation */
+  protected int operationNumber = 0;
+  /** The total number of Operation */
+  protected final int totalOperationNumber = config.getGeneralConfig().getOperationNumber();
+  /** Log related */
+  protected final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+  /** The controller of operations */
+  protected final OperationController operationController;
   /** Measurement */
   protected Measurement measurement;
-
   /** Control the end of client */
   private final CountDownLatch countDownLatch;
 
@@ -49,6 +55,7 @@ public class Client implements Runnable {
     this.countDownLatch = countDownLatch;
     this.barrier = barrier;
     this.clientThreadId = id;
+    this.operationController = new OperationController();
     this.measurement = new Measurement();
   }
 
@@ -60,28 +67,57 @@ public class Client implements Runnable {
         barrier.await();
 
         String currentThread = Thread.currentThread().getName();
+        // print current progress periodically
+        service.scheduleAtFixedRate(
+            () -> {
+              String percent =
+                  String.format("%.2f", (operationNumber) * 100.0D / totalOperationNumber);
+              logger.info("{} {}% workload is done.", currentThread, percent);
+            },
+            1,
+            config.getGeneralConfig().getLogInterval(),
+            TimeUnit.SECONDS);
 
-        Random test = new Random(config.getGeneralConfig().getDataSeed());
-
-        // TODO test
-        for (int i = 0; i < 100; i++) {
-          if (i % 10 == 0) {
-            logger.info(currentThread + ":" + i);
+        for (operationNumber = 0; operationNumber < totalOperationNumber; operationNumber++) {
+          Operation operation = operationController.getNextOperationType();
+          Status status = new Status(false);
+          long start = System.currentTimeMillis();
+          switch (operation) {
+            case WRITE:
+              status = write();
+              break;
+            case QUERY:
+              status = query();
+              break;
+            default:
+              logger.error("Unknown Operation Type: " + operation);
+              status = new Status(false, 1);
           }
-          Thread.sleep(10);
-          Status status = new Status(true);
-          int number = test.nextInt(100);
-          status.setTimeCost(number);
-          measurement.addOperationLatency(Operation.CONFIG_NODE, status.getTimeCost());
-          measurement.addOkOperationNum(Operation.CONFIG_NODE);
-          measurement.addOkPointNum(Operation.CONFIG_NODE, number);
+          status.setTimeCost(System.currentTimeMillis() - start);
+          if (status.isOk()) {
+            measurement.addOperationLatency(operation, status.getTimeCost());
+            measurement.addOkOperationNum(operation);
+            measurement.addOkPointNum(operation, 1);
+          } else {
+            measurement.addFailOperationNum(operation);
+            measurement.addFailPointNum(operation, 1);
+          }
         }
+        service.shutdown();
       } catch (Exception e) {
         logger.error("Unexpected error: ", e);
       }
     } finally {
       countDownLatch.countDown();
     }
+  }
+
+  private Status write() {
+    return new Status(true, 1);
+  }
+
+  private Status query() {
+    return new Status(true, 1);
   }
 
   public Measurement getMeasurement() {

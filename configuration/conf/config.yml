@@ -30,6 +30,8 @@ generalConfig:
   resultPrecision: 0.1
   # The seed of data random
   dataSeed: 666
+  # The interval of log, unit: s
+  logInterval: 5
 
 # The config of config_node
 configNodeConfig:

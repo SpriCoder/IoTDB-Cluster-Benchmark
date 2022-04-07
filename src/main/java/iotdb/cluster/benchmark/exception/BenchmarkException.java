@@ -17,30 +17,24 @@
  * under the License.
  */
 
-package iotdb.cluster.benchmark.operation;
+package iotdb.cluster.benchmark.exception;
 
-import java.util.LinkedList;
-import java.util.List;
+public class BenchmarkException extends Exception {
+  private static final long serialVersionUID = 8844396756042772131L;
 
-public enum Operation {
-  WRITE("WRITE"),
-  QUERY("QUERY");
-
-  public String getName() {
-    return name;
+  public BenchmarkException() {
+    super();
   }
 
-  String name;
-
-  Operation(String name) {
-    this.name = name;
+  public BenchmarkException(String message) {
+    super(message);
   }
 
-  public static List<Operation> getAllOperations() {
-    List<Operation> operations = new LinkedList<>();
-    for (Operation operation : Operation.values()) {
-      operations.add(operation);
-    }
-    return operations;
+  public BenchmarkException(Throwable cause) {
+    super(cause);
+  }
+
+  public BenchmarkException(String message, Throwable cause) {
+    super(message, cause);
   }
 }
