@@ -19,15 +19,29 @@
 
 package iotdb.cluster.benchmark.client;
 
+import org.apache.iotdb.confignode.rpc.thrift.ConfigIService;
+import org.apache.iotdb.confignode.rpc.thrift.DataNodeMessage;
+import org.apache.iotdb.confignode.rpc.thrift.DataNodeRegisterReq;
+import org.apache.iotdb.confignode.rpc.thrift.DataNodeRegisterResp;
+import org.apache.iotdb.rpc.RpcTransportFactory;
+import org.apache.iotdb.rpc.TSStatusCode;
+import org.apache.iotdb.service.rpc.thrift.EndPoint;
+
+import iotdb.cluster.benchmark.common.Endpoint;
 import iotdb.cluster.benchmark.config.Config;
 import iotdb.cluster.benchmark.config.ConfigDescriptor;
 import iotdb.cluster.benchmark.measurement.Measurement;
 import iotdb.cluster.benchmark.measurement.Status;
 import iotdb.cluster.benchmark.operation.Operation;
 import iotdb.cluster.benchmark.operation.OperationController;
+import iotdb.cluster.benchmark.tool.DataNodeEndpointTool;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.*;
 import java.util.concurrent.*;
 
 public class Client implements Runnable {
@@ -40,10 +54,20 @@ public class Client implements Runnable {
   protected int operationNumber = 0;
   /** The total number of Operation */
   protected final int totalOperationNumber = config.getGeneralConfig().getOperationNumber();
+  /** The endpoint of config node */
+  protected Endpoint configEndpoints;
+  /** The client of config node */
+  protected ConfigIService.Client configNodeClient;
+  /** The list of data node id */
+  protected List<Integer> dataNodeId = new ArrayList<>();
+  /** The map of data node */
+  protected Map<Integer, EndPoint> idAndEndPointMap = new HashMap<>();
   /** Log related */
   protected final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
   /** The controller of operations */
   protected final OperationController operationController;
+  /** The random of query */
+  protected final Random random = new Random(config.getGeneralConfig().getDataSeed());
   /** Measurement */
   protected Measurement measurement;
   /** Control the end of client */
@@ -51,8 +75,10 @@ public class Client implements Runnable {
 
   private final CyclicBarrier barrier;
 
-  public Client(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+  public Client(
+      int id, Endpoint configEndpoint, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     this.countDownLatch = countDownLatch;
+    this.configEndpoints = configEndpoint;
     this.barrier = barrier;
     this.clientThreadId = id;
     this.operationController = new OperationController();
@@ -63,6 +89,13 @@ public class Client implements Runnable {
   public void run() {
     try {
       try {
+        TTransport transport =
+            RpcTransportFactory.INSTANCE.getTransport(
+                configEndpoints.getHost(),
+                configEndpoints.getPort(),
+                config.getConfigNodeConfig().getTimeOut());
+        transport.open();
+        configNodeClient = new ConfigIService.Client(new TBinaryProtocol(transport));
         // wait for that all dataClients start test simultaneously
         barrier.await();
 
@@ -103,6 +136,9 @@ public class Client implements Runnable {
             measurement.addFailPointNum(operation, 1);
           }
         }
+        // TODO release client
+        configNodeClient = null;
+        transport.close();
         service.shutdown();
       } catch (Exception e) {
         logger.error("Unexpected error: ", e);
@@ -113,11 +149,47 @@ public class Client implements Runnable {
   }
 
   private Status write() {
-    return new Status(true, 1);
+    EndPoint endPoint = DataNodeEndpointTool.getNextDataNodeEndPoint();
+    DataNodeRegisterReq req = new DataNodeRegisterReq(endPoint);
+    try {
+      DataNodeRegisterResp resp = configNodeClient.registerDataNode(req);
+      if (TSStatusCode.SUCCESS_STATUS.getStatusCode() == resp.registerResult.getCode()) {
+        dataNodeId.add(resp.dataNodeID);
+        idAndEndPointMap.put(resp.dataNodeID, endPoint);
+        logger.info(
+            "Register datanode-"
+                + resp.dataNodeID
+                + "endpoint{ip="
+                + endPoint.getIp()
+                + ", port="
+                + endPoint.getPort()
+                + "}");
+        return new Status(true, 1);
+      } else {
+        return new Status(false);
+      }
+    } catch (TException e) {
+      logger.error(e.getMessage());
+      return new Status(false, e, e.getMessage());
+    }
   }
 
   private Status query() {
-    return new Status(true, 1);
+    Integer queryDataNodeId = getNextQueryDataNodeId();
+    try {
+      Map<Integer, DataNodeMessage> msgMap = configNodeClient.getDataNodesMessage(queryDataNodeId);
+      return new Status(true, msgMap.size());
+    } catch (TException e) {
+      logger.error(e.getMessage());
+      return new Status(false, e, e.getMessage());
+    }
+  }
+
+  private Integer getNextQueryDataNodeId() {
+    if (dataNodeId.size() == 0) {
+      return -1;
+    }
+    return dataNodeId.get(random.nextInt(dataNodeId.size()));
   }
 
   public Measurement getMeasurement() {

@@ -20,6 +20,7 @@
 package iotdb.cluster.benchmark.mode;
 
 import iotdb.cluster.benchmark.client.Client;
+import iotdb.cluster.benchmark.common.Endpoint;
 import iotdb.cluster.benchmark.config.Config;
 import iotdb.cluster.benchmark.config.ConfigDescriptor;
 import iotdb.cluster.benchmark.measurement.Measurement;
@@ -60,7 +61,8 @@ public class BaseMode {
       return;
     }
     for (int i = 0; i < config.getGeneralConfig().getClientNumber(); i++) {
-      Client client = new Client(i, downLatch, barrier);
+      Endpoint configEndpoint = config.getConfigNodeConfig().getEndpoints().get(0);
+      Client client = new Client(i, configEndpoint, downLatch, barrier);
       clients.add(client);
     }
     for (Client client : clients) {

@@ -244,9 +244,7 @@ public class Config {
         return false;
       }
       DataNodeConfig that = (DataNodeConfig) o;
-      return ipLength == that.ipLength
-          && startPort == that.startPort
-          && timeOut == that.timeOut;
+      return ipLength == that.ipLength && startPort == that.startPort && timeOut == that.timeOut;
     }
 
     @Override

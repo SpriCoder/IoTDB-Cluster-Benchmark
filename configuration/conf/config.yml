@@ -25,7 +25,7 @@ generalConfig:
   # The proportion of operation, order is Op1:Op2
   # Op1: register data node
   # Op2: query data node
-  operationProportion: 1:1
+  operationProportion: 1:9
   # The precision of result, unit: %
   resultPrecision: 0.1
   # The seed of data random

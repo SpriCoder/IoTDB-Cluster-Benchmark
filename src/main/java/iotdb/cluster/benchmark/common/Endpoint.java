@@ -25,6 +25,13 @@ public class Endpoint {
   private String host = "127.0.0.1";
   private int port = 22227;
 
+  public Endpoint() {}
+
+  public Endpoint(String host, int port) {
+    this.host = host;
+    this.port = port;
+  }
+
   public String getHost() {
     return host;
   }
