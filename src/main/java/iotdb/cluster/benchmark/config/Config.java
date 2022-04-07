@@ -69,7 +69,6 @@ public class Config {
     configProperties.addProperty("ConfigNodeConfig", "endpoints", configNodeConfig.endpoints);
     configProperties.addProperty("ConfigNodeConfig", "timeOut", configNodeConfig.timeOut);
 
-    configProperties.addProperty("DataNodeConfig", "number", dataNodeConfig.number);
     configProperties.addProperty("DataNodeConfig", "ipLength", dataNodeConfig.ipLength);
     configProperties.addProperty("DataNodeConfig", "startPort", dataNodeConfig.startPort);
     configProperties.addProperty("DataNodeConfig", "timeOut", dataNodeConfig.timeOut);
@@ -208,18 +207,9 @@ public class Config {
   }
 
   public static class DataNodeConfig {
-    private int number = 5;
     private int ipLength = 10;
     private int startPort = 6667;
     private int timeOut = 2000;
-
-    public int getNumber() {
-      return number;
-    }
-
-    public void setNumber(int number) {
-      this.number = number;
-    }
 
     public int getIpLength() {
       return ipLength;
@@ -254,15 +244,14 @@ public class Config {
         return false;
       }
       DataNodeConfig that = (DataNodeConfig) o;
-      return number == that.number
-          && ipLength == that.ipLength
+      return ipLength == that.ipLength
           && startPort == that.startPort
           && timeOut == that.timeOut;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(number, ipLength, startPort, timeOut);
+      return Objects.hash(ipLength, startPort, timeOut);
     }
   }
 }

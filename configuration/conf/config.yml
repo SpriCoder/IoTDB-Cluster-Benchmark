@@ -44,8 +44,6 @@ configNodeConfig:
 
 # The config of data_node
 dataNodeConfig:
-  # The number of dataNode
-  number: 5
   # The length of generated IP
   ipLength: 10
   # The start port of data_node
