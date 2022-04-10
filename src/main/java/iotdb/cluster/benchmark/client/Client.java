@@ -157,9 +157,9 @@ public class Client implements Runnable {
         dataNodeId.add(resp.dataNodeID);
         idAndEndPointMap.put(resp.dataNodeID, endPoint);
         logger.info(
-            "Register datanode-"
+            "Client-" + clientThreadId + " register datanode-"
                 + resp.dataNodeID
-                + "endpoint{ip="
+                + " endpoint{ip="
                 + endPoint.getIp()
                 + ", port="
                 + endPoint.getPort()
