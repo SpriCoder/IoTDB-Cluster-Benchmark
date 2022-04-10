@@ -30,6 +30,7 @@ import org.apache.iotdb.service.rpc.thrift.EndPoint;
 import iotdb.cluster.benchmark.common.Endpoint;
 import iotdb.cluster.benchmark.config.Config;
 import iotdb.cluster.benchmark.config.ConfigDescriptor;
+import iotdb.cluster.benchmark.config.Constants;
 import iotdb.cluster.benchmark.measurement.Measurement;
 import iotdb.cluster.benchmark.measurement.Status;
 import iotdb.cluster.benchmark.operation.Operation;
@@ -38,6 +39,7 @@ import iotdb.cluster.benchmark.tool.DataNodeEndpointTool;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +50,8 @@ public class Client implements Runnable {
   private static final Logger logger = LoggerFactory.getLogger(Client.class);
   protected static Config config = ConfigDescriptor.getInstance().getConfig();
 
+  private static final String MSG_RECONNECTION_FAIL = "Failed to reconnect config node";
+
   /** The id of client */
   protected final int clientThreadId;
   /** The current number of Operation */
@@ -56,6 +60,8 @@ public class Client implements Runnable {
   protected final int totalOperationNumber = config.getGeneralConfig().getOperationNumber();
   /** The endpoint of config node */
   protected Endpoint configEndpoints;
+  /** The transport of config node client */
+  protected TTransport transport;
   /** The client of config node */
   protected ConfigIService.Client configNodeClient;
   /** The list of data node id */
@@ -89,12 +95,7 @@ public class Client implements Runnable {
   public void run() {
     try {
       try {
-        TTransport transport =
-            RpcTransportFactory.INSTANCE.getTransport(
-                configEndpoints.getHost(),
-                configEndpoints.getPort(),
-                config.getConfigNodeConfig().getTimeOut());
-        transport.open();
+        openTransport();
         configNodeClient = new ConfigIService.Client(new TBinaryProtocol(transport));
         // wait for that all dataClients start test simultaneously
         barrier.await();
@@ -136,7 +137,6 @@ public class Client implements Runnable {
             measurement.addFailPointNum(operation, 1);
           }
         }
-        // TODO release client
         configNodeClient = null;
         transport.close();
         service.shutdown();
@@ -151,38 +151,100 @@ public class Client implements Runnable {
   private Status write() {
     EndPoint endPoint = DataNodeEndpointTool.getNextDataNodeEndPoint();
     DataNodeRegisterReq req = new DataNodeRegisterReq(endPoint);
+    Status status;
     try {
-      DataNodeRegisterResp resp = configNodeClient.registerDataNode(req);
-      if (TSStatusCode.SUCCESS_STATUS.getStatusCode() == resp.registerResult.getCode()) {
-        dataNodeId.add(resp.dataNodeID);
-        idAndEndPointMap.put(resp.dataNodeID, endPoint);
-        logger.info(
-            "Client-" + clientThreadId + " register datanode-"
-                + resp.dataNodeID
-                + " endpoint{ip="
-                + endPoint.getIp()
-                + ", port="
-                + endPoint.getPort()
-                + "}");
-        return new Status(true, 1);
-      } else {
-        return new Status(false);
-      }
+      status = doWrite(endPoint, req);
     } catch (TException e) {
-      logger.error(e.getMessage());
-      return new Status(false, e, e.getMessage());
+      if (reconnect()) {
+        try {
+          status = doWrite(endPoint, req);
+        } catch (TException e1) {
+          logger.error(e.getMessage());
+          status = new Status(false, e, e.getMessage());
+        }
+      } else {
+        logger.error(MSG_RECONNECTION_FAIL);
+        status = new Status(false, e, e.getMessage());
+      }
+    }
+    return status;
+  }
+
+  private Status doWrite(EndPoint endPoint, DataNodeRegisterReq req) throws TException {
+    DataNodeRegisterResp resp = configNodeClient.registerDataNode(req);
+    if (TSStatusCode.SUCCESS_STATUS.getStatusCode() == resp.registerResult.getCode()) {
+      dataNodeId.add(resp.dataNodeID);
+      idAndEndPointMap.put(resp.dataNodeID, endPoint);
+      logger.debug(
+          "Client-"
+              + clientThreadId
+              + " register datanode-"
+              + resp.dataNodeID
+              + " endpoint{ip="
+              + endPoint.getIp()
+              + ", port="
+              + endPoint.getPort()
+              + "}");
+      return new Status(true, 1);
+    } else {
+      return new Status(false);
     }
   }
 
   private Status query() {
     Integer queryDataNodeId = getNextQueryDataNodeId();
+    Status status;
     try {
       Map<Integer, DataNodeMessage> msgMap = configNodeClient.getDataNodesMessage(queryDataNodeId);
-      return new Status(true, msgMap.size());
+      status = new Status(true, msgMap.size());
     } catch (TException e) {
-      logger.error(e.getMessage());
-      return new Status(false, e, e.getMessage());
+      if (reconnect()) {
+        try {
+          Map<Integer, DataNodeMessage> msgMap =
+              configNodeClient.getDataNodesMessage(queryDataNodeId);
+          status = new Status(true, msgMap.size());
+        } catch (TException e1) {
+          logger.error(e.getMessage());
+          status = new Status(false, e, e.getMessage());
+        }
+      } else {
+        logger.error(MSG_RECONNECTION_FAIL);
+        status = new Status(false, e, e.getMessage());
+      }
     }
+    return status;
+  }
+
+  private void openTransport() throws TTransportException {
+    transport =
+        RpcTransportFactory.INSTANCE.getTransport(
+            configEndpoints.getHost(),
+            configEndpoints.getPort(),
+            config.getConfigNodeConfig().getTimeOut());
+    transport.open();
+  }
+
+  private boolean reconnect() {
+    boolean flag = false;
+    for (int i = 0; i < Constants.RETRY_TIME; i++) {
+      try {
+        if (transport != null) {
+          transport.close();
+          openTransport();
+          configNodeClient = new ConfigIService.Client(new TBinaryProtocol(transport));
+          flag = true;
+          break;
+        }
+      } catch (Exception e) {
+        try {
+          Thread.sleep(Constants.RETRY_INTERVAL_MS);
+        } catch (InterruptedException e1) {
+          logger.error("reconnect is interrupted", e1);
+          Thread.currentThread().interrupt();
+        }
+      }
+    }
+    return flag;
   }
 
   private Integer getNextQueryDataNodeId() {

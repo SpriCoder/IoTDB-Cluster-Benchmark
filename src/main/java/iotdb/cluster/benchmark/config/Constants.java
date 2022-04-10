@@ -22,6 +22,10 @@ package iotdb.cluster.benchmark.config;
 public class Constants {
   private Constants() {}
 
+  public static final Integer RETRY_TIME = 5;
+
+  public static final Integer RETRY_INTERVAL_MS = 1000;
+
   public static final String CONFIG_NAME = "config.yml";
 
   public static final String CONSOLE_PREFIX = "IotDB-benchmark>";
