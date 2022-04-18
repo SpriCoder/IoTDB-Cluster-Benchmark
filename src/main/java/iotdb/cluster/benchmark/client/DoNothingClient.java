@@ -17,30 +17,28 @@
  * under the License.
  */
 
-package iotdb.cluster.benchmark.operation;
+package iotdb.cluster.benchmark.client;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 
-public enum Operation {
-  REGISTER_DATANODE("REGISTER_DATANODE"),
-  QUERY_DATANODE("QUERY_DATANODE");
-
-  public String getName() {
-    return name;
+public class DoNothingClient extends Client{
+  protected DoNothingClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+    super(id, countDownLatch, barrier);
   }
 
-  String name;
-
-  Operation(String name) {
-    this.name = name;
+  @Override
+  protected boolean init() {
+    return false;
   }
 
-  public static List<Operation> getAllOperations() {
-    List<Operation> operations = new LinkedList<>();
-    for (Operation operation : Operation.values()) {
-      operations.add(operation);
-    }
-    return operations;
+  @Override
+  protected boolean doTest() {
+    return false;
+  }
+
+  @Override
+  protected boolean close() {
+    return false;
   }
 }

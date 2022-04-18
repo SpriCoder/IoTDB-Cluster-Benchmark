@@ -18,6 +18,8 @@
 #
 
 generalConfig:
+  # The mode of benchmark
+  mode: REGISTER_AND_QUERY_DATANODE
   # The number of running thread
   clientNumber: 5
   # The number of operation

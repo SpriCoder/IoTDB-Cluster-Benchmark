@@ -67,7 +67,13 @@ public abstract class Client implements Runnable {
   }
 
   public static Client getInstance(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    return new RegisterAndQueryDataNodeClient(id, countDownLatch, barrier);
+    switch (config.getGeneralConfig().getMode()){
+      case REGISTER_AND_QUERY_DATANODE:
+        return new RegisterAndQueryDataNodeClient(id, countDownLatch, barrier);
+      default:
+        logger.error("Unknown mode:" + config.getGeneralConfig().getMode());
+        return new DoNothingClient(id, countDownLatch, barrier);
+    }
   }
 
   @Override

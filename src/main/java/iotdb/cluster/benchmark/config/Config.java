@@ -20,6 +20,7 @@
 package iotdb.cluster.benchmark.config;
 
 import iotdb.cluster.benchmark.common.Endpoint;
+import iotdb.cluster.benchmark.mode.Mode;
 
 import java.util.Collections;
 import java.util.List;
@@ -58,6 +59,7 @@ public class Config {
   public ConfigProperties getShowConfigProperties() {
     ConfigProperties configProperties = new ConfigProperties();
 
+    configProperties.addProperty("GeneralConfig", "mode", generalConfig.mode);
     configProperties.addProperty("GeneralConfig", "clientNumber", generalConfig.clientNumber);
     configProperties.addProperty("GeneralConfig", "operationNumber", generalConfig.operationNumber);
     configProperties.addProperty(
@@ -84,12 +86,21 @@ public class Config {
   }
 
   public static class GeneralConfig {
+    private Mode mode = Mode.REGISTER_AND_QUERY_DATANODE;
     private int clientNumber = 5;
     private int operationNumber = 1000;
     private String operationProportion = "1:1";
     private double resultPrecision = 0.1;
     private long dataSeed = 666L;
     private int logInterval = 5;
+
+    public Mode getMode() {
+      return mode;
+    }
+
+    public void setMode(Mode mode) {
+      this.mode = mode;
+    }
 
     public int getClientNumber() {
       return clientNumber;

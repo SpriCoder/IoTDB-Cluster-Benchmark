@@ -50,10 +50,10 @@ public class RegisterAndQueryDataNodeClient extends ConfigNodeClient {
     Status status = new Status(false);
     long start = System.currentTimeMillis();
     switch (operation) {
-      case WRITE:
+      case REGISTER_DATANODE:
         status = write();
         break;
-      case QUERY:
+      case QUERY_DATANODE:
         status = query();
         break;
       default:

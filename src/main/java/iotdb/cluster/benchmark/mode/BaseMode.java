@@ -79,8 +79,17 @@ public class BaseMode {
   }
 
   protected void postCheck() {
-    List<Operation> operations = Operation.getAllOperations();
+    List<Operation> operations = new ArrayList<>();
     List<Measurement> threadsMeasurements = new ArrayList<>();
+    switch (config.getGeneralConfig().getMode()){
+      case REGISTER_AND_QUERY_DATANODE:
+        operations.add(Operation.REGISTER_DATANODE);
+        operations.add(Operation.QUERY_DATANODE);
+        break;
+      default:
+        operations = Operation.getAllOperations();
+        break;
+    }
     finalMeasure(measurement, threadsMeasurements, start, clients, operations);
   }
 
