@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
@@ -52,10 +53,13 @@ public abstract class ConfigNodeClient extends Client {
   protected List<Integer> dataNodeId = new ArrayList<>();
   /** The map of data node */
   protected Map<Integer, EndPoint> idAndEndPointMap = new HashMap<>();
+  /** The random of switch */
+  protected Random random = new Random(config.getGeneralConfig().getDataSeed());
 
   protected ConfigNodeClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier);
-    this.configEndpoints = config.getConfigNodeConfig().getEndpoints().get(0);
+    int configNodeIndex = random.nextInt(config.getConfigNodeConfig().getEndpoints().size());
+    this.configEndpoints = config.getConfigNodeConfig().getEndpoints().get(configNodeIndex);
   }
 
   @Override
