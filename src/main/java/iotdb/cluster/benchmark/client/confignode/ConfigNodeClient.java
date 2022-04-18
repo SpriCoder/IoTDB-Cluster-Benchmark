@@ -17,12 +17,13 @@
  * under the License.
  */
 
-package iotdb.cluster.benchmark.client;
+package iotdb.cluster.benchmark.client.confignode;
 
 import org.apache.iotdb.confignode.rpc.thrift.ConfigIService;
 import org.apache.iotdb.rpc.RpcTransportFactory;
 import org.apache.iotdb.service.rpc.thrift.EndPoint;
 
+import iotdb.cluster.benchmark.client.Client;
 import iotdb.cluster.benchmark.common.Endpoint;
 import iotdb.cluster.benchmark.config.Constants;
 import iotdb.cluster.benchmark.operation.Operation;

@@ -60,6 +60,13 @@ public class Config {
     ConfigProperties configProperties = new ConfigProperties();
 
     configProperties.addProperty("GeneralConfig", "mode", generalConfig.mode);
+    configProperties.addProperty(
+        "GeneralConfig", "storageGroupNumber", generalConfig.storageGroupNumber);
+    configProperties.addProperty("GeneralConfig", "deviceNumber", generalConfig.deviceNumber);
+    configProperties.addProperty(
+        "GeneralConfig", "storageGroupNamePrefix", generalConfig.storageGroupNamePrefix);
+    configProperties.addProperty(
+        "GeneralConfig", "deviceNamePrefix", generalConfig.deviceNamePrefix);
     configProperties.addProperty("GeneralConfig", "clientNumber", generalConfig.clientNumber);
     configProperties.addProperty("GeneralConfig", "operationNumber", generalConfig.operationNumber);
     configProperties.addProperty(
@@ -86,7 +93,11 @@ public class Config {
   }
 
   public static class GeneralConfig {
-    private Mode mode = Mode.REGISTER_AND_QUERY_DATANODE;
+    private Mode mode = Mode.CONFIG_NODE_REGISTER_AND_QUERY_DATANODE;
+    private int storageGroupNumber = 5;
+    private int deviceNumber = 5;
+    private String storageGroupNamePrefix = "s_";
+    private String deviceNamePrefix = "d_";
     private int clientNumber = 5;
     private int operationNumber = 1000;
     private String operationProportion = "1:1";
@@ -100,6 +111,38 @@ public class Config {
 
     public void setMode(Mode mode) {
       this.mode = mode;
+    }
+
+    public int getStorageGroupNumber() {
+      return storageGroupNumber;
+    }
+
+    public void setStorageGroupNumber(int storageGroupNumber) {
+      this.storageGroupNumber = storageGroupNumber;
+    }
+
+    public int getDeviceNumber() {
+      return deviceNumber;
+    }
+
+    public void setDeviceNumber(int deviceNumber) {
+      this.deviceNumber = deviceNumber;
+    }
+
+    public String getStorageGroupNamePrefix() {
+      return storageGroupNamePrefix;
+    }
+
+    public void setStorageGroupNamePrefix(String storageGroupNamePrefix) {
+      this.storageGroupNamePrefix = storageGroupNamePrefix;
+    }
+
+    public String getDeviceNamePrefix() {
+      return deviceNamePrefix;
+    }
+
+    public void setDeviceNamePrefix(String deviceNamePrefix) {
+      this.deviceNamePrefix = deviceNamePrefix;
     }
 
     public int getClientNumber() {

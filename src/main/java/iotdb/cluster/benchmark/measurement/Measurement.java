@@ -46,7 +46,7 @@ public class Measurement {
   private final Map<Operation, Long> failOperationNumMap;
   private final Map<Operation, Long> okPointNumMap;
   private final Map<Operation, Long> failPointNumMap;
-  private static final String RESULT_ITEM = "%-25s";
+  private static final String RESULT_ITEM = "%-31s";
   private static final String LATENCY_ITEM = "%-12s";
   /** Precision = 3 / COMPRESSION */
   private static final int COMPRESSION =
@@ -153,7 +153,7 @@ public class Measurement {
     System.out.println("Test elapsed time: " + String.format("%.2f", elapseTime) + " second");
 
     System.out.println(
-        "----------------------------------------------------------Result Matrix----------------------------------------------------------");
+        "-----------------------------------------------------------------------------Result Matrix-----------------------------------------------------------------------------");
     StringBuffer format = new StringBuffer();
     for (int i = 0; i < 6; i++) {
       format.append(RESULT_ITEM);
@@ -179,7 +179,7 @@ public class Measurement {
           throughput);
     }
     System.out.println(
-        "---------------------------------------------------------------------------------------------------------------------------------");
+        "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------");
   }
 
   /** Show Config of test */

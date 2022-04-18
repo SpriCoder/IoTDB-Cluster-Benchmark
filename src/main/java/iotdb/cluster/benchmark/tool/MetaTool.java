@@ -17,28 +17,28 @@
  * under the License.
  */
 
-package iotdb.cluster.benchmark.client;
+package iotdb.cluster.benchmark.tool;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
+import iotdb.cluster.benchmark.config.Config;
+import iotdb.cluster.benchmark.config.ConfigDescriptor;
 
-public class DoNothingClient extends Client {
-  protected DoNothingClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    super(id, countDownLatch, barrier);
+public class MetaTool {
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
+
+  public static int getFirstDeviceIndex() {
+    return 0;
   }
 
-  @Override
-  protected boolean init() {
-    return false;
+  public static int calculateStorageGroupId(int deviceId) {
+    // TODO can extend
+    return deviceId % config.getGeneralConfig().getStorageGroupNumber();
   }
 
-  @Override
-  protected boolean doTest() {
-    return false;
+  public static String getGroupName(int groupId) {
+    return config.getGeneralConfig().getStorageGroupNamePrefix() + groupId;
   }
 
-  @Override
-  protected boolean close() {
-    return false;
+  public static String getDeviceName(int deviceId) {
+    return config.getGeneralConfig().getDeviceNamePrefix() + deviceId;
   }
 }

@@ -19,6 +19,7 @@
 
 package iotdb.cluster.benchmark.config;
 
+import iotdb.cluster.benchmark.operation.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -28,6 +29,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import static java.lang.System.exit;
 
 public class ConfigDescriptor {
   public static final Logger logger = LoggerFactory.getLogger(ConfigDescriptor.class);
@@ -61,14 +64,16 @@ public class ConfigDescriptor {
       try (InputStream inputStream = new FileInputStream(url)) {
         logger.info("Start to read config file {}", url);
         config = (Config) yaml.load(inputStream);
-        return;
       } catch (IOException e) {
         logger.warn("Fail to find config file : {}, use default config.", url, e);
       }
     } else {
       logger.warn("Fail to find config file, use default");
+      config = new Config();
     }
-    config = new Config();
+    if (!preCheck()) {
+      exit(1);
+    }
   }
 
   public Config getConfig() {
@@ -81,5 +86,39 @@ public class ConfigDescriptor {
 
   public static ConfigDescriptor getInstance() {
     return ConfigDescriptorHolder.INSTANCE;
+  }
+
+  private boolean preCheck() {
+    String[] operations = config.getGeneralConfig().getOperationProportion().split(":");
+    if (operations.length != Operation.values().length) {
+      logger.error("Please check OperationProportion format.");
+      return false;
+    }
+    double operationCheck = 0.0;
+    for (int i = 0; i < operations.length; i++) {
+      operationCheck += Double.parseDouble(operations[i]);
+    }
+    switch (config.getGeneralConfig().getMode()) {
+      case CONFIG_NODE_REGISTER_AND_QUERY_DATANODE:
+        operationCheck -= Double.parseDouble(operations[Operation.REGISTER_DATANODE.ordinal()]);
+        operationCheck -= Double.parseDouble(operations[Operation.QUERY_DATANODE.ordinal()]);
+        break;
+      case CONFIG_NODE_OPERATE_PARTITION:
+        operationCheck -=
+            Double.parseDouble(operations[Operation.GET_OR_CREATE_SCHEMA_PARTITION.ordinal()]);
+        operationCheck -= Double.parseDouble(operations[Operation.GET_SCHEMA_PARTITION.ordinal()]);
+        operationCheck -=
+            Double.parseDouble(operations[Operation.GET_OR_CREATE_DATA_PARTITION.ordinal()]);
+        operationCheck -= Double.parseDouble(operations[Operation.GET_DATA_PARTITION.ordinal()]);
+        break;
+      default:
+        logger.error("Please check mode.");
+        return false;
+    }
+    if (operationCheck > 1e-7) {
+      logger.error("Please check mode and operation proportion.");
+      return false;
+    }
+    return true;
   }
 }

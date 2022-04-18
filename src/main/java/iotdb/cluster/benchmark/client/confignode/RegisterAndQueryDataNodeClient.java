@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package iotdb.cluster.benchmark.client;
+package iotdb.cluster.benchmark.client.confignode;
 
 import org.apache.iotdb.confignode.rpc.thrift.DataNodeMessage;
 import org.apache.iotdb.confignode.rpc.thrift.DataNodeRegisterReq;
@@ -40,7 +40,7 @@ public class RegisterAndQueryDataNodeClient extends ConfigNodeClient {
   private static final Logger logger =
       LoggerFactory.getLogger(RegisterAndQueryDataNodeClient.class);
 
-  protected RegisterAndQueryDataNodeClient(
+  public RegisterAndQueryDataNodeClient(
       int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier);
   }

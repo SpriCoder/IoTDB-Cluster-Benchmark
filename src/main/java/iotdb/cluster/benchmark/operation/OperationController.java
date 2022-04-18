@@ -74,6 +74,6 @@ public class OperationController {
         return operations.get(i);
       }
     }
-    return Operation.WRITE;
+    return Operation.REGISTER_DATANODE;
   }
 }

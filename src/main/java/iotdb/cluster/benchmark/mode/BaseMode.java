@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -60,7 +61,7 @@ public class BaseMode {
       return;
     }
     for (int i = 0; i < config.getGeneralConfig().getClientNumber(); i++) {
-      Client client = Client.getInstance(i, downLatch, barrier);
+      Client client = Client.build(i, downLatch, barrier);
       clients.add(client);
     }
     for (Client client : clients) {
@@ -80,11 +81,17 @@ public class BaseMode {
 
   protected void postCheck() {
     List<Operation> operations = new ArrayList<>();
-    List<Measurement> threadsMeasurements = new ArrayList<>();
-    switch (config.getGeneralConfig().getMode()){
-      case REGISTER_AND_QUERY_DATANODE:
+    List<Measurement> threadsMeasurements = new LinkedList<>();
+    switch (config.getGeneralConfig().getMode()) {
+      case CONFIG_NODE_REGISTER_AND_QUERY_DATANODE:
         operations.add(Operation.REGISTER_DATANODE);
         operations.add(Operation.QUERY_DATANODE);
+        break;
+      case CONFIG_NODE_OPERATE_PARTITION:
+        operations.add(Operation.GET_OR_CREATE_SCHEMA_PARTITION);
+        operations.add(Operation.GET_SCHEMA_PARTITION);
+        operations.add(Operation.GET_OR_CREATE_DATA_PARTITION);
+        operations.add(Operation.GET_DATA_PARTITION);
         break;
       default:
         operations = Operation.getAllOperations();

@@ -19,6 +19,8 @@
 
 package iotdb.cluster.benchmark.client;
 
+import iotdb.cluster.benchmark.client.confignode.PartitionClient;
+import iotdb.cluster.benchmark.client.confignode.RegisterAndQueryDataNodeClient;
 import iotdb.cluster.benchmark.config.Config;
 import iotdb.cluster.benchmark.config.ConfigDescriptor;
 import iotdb.cluster.benchmark.measurement.Measurement;
@@ -66,10 +68,12 @@ public abstract class Client implements Runnable {
     this.measurement = new Measurement();
   }
 
-  public static Client getInstance(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    switch (config.getGeneralConfig().getMode()){
-      case REGISTER_AND_QUERY_DATANODE:
+  public static Client build(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+    switch (config.getGeneralConfig().getMode()) {
+      case CONFIG_NODE_REGISTER_AND_QUERY_DATANODE:
         return new RegisterAndQueryDataNodeClient(id, countDownLatch, barrier);
+      case CONFIG_NODE_OPERATE_PARTITION:
+        return new PartitionClient(id, countDownLatch, barrier);
       default:
         logger.error("Unknown mode:" + config.getGeneralConfig().getMode());
         return new DoNothingClient(id, countDownLatch, barrier);
