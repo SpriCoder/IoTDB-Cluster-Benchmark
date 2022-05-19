@@ -19,9 +19,9 @@
 
 package iotdb.cluster.benchmark.client.confignode;
 
+import org.apache.iotdb.common.rpc.thrift.TEndPoint;
 import org.apache.iotdb.confignode.rpc.thrift.ConfigIService;
 import org.apache.iotdb.rpc.RpcTransportFactory;
-import org.apache.iotdb.service.rpc.thrift.EndPoint;
 
 import iotdb.cluster.benchmark.client.Client;
 import iotdb.cluster.benchmark.common.Endpoint;
@@ -53,7 +53,7 @@ public abstract class ConfigNodeClient extends Client {
   /** The list of data node id */
   protected List<Integer> dataNodeId = new ArrayList<>();
   /** The map of data node */
-  protected Map<Integer, EndPoint> idAndEndPointMap = new HashMap<>();
+  protected Map<Integer, TEndPoint> idAndEndPointMap = new HashMap<>();
   /** The random of switch */
   protected Random random = new Random(config.getGeneralConfig().getDataSeed());
 
