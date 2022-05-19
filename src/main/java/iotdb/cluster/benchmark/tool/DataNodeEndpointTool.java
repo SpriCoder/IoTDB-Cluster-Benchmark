@@ -19,7 +19,7 @@
 
 package iotdb.cluster.benchmark.tool;
 
-import org.apache.iotdb.service.rpc.thrift.EndPoint;
+import org.apache.iotdb.common.rpc.thrift.TEndPoint;
 
 import iotdb.cluster.benchmark.config.Config;
 import iotdb.cluster.benchmark.config.ConfigDescriptor;
@@ -31,7 +31,7 @@ public class DataNodeEndpointTool {
   private static AtomicInteger dataNodePort =
       new AtomicInteger(config.getDataNodeConfig().getStartPort());
 
-  public static EndPoint getNextDataNodeEndPoint() {
-    return new EndPoint(StringTool.getRandomIp(), dataNodePort.getAndAdd(2));
+  public static TEndPoint getNextDataNodeEndPoint() {
+    return new TEndPoint(StringTool.getRandomIp(), dataNodePort.getAndAdd(2));
   }
 }

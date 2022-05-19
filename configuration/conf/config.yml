@@ -19,7 +19,7 @@
 
 generalConfig:
   # The mode of benchmark
-  mode: CONFIG_NODE_OPERATE_PARTITION
+  mode: CONFIG_NODE_REGISTER_AND_QUERY_DATANODE
   # The number of storage group
   storageGroupNumber: 5
   # The number of device
@@ -39,7 +39,7 @@ generalConfig:
   # Op4: getSchemaPartition
   # Op5: getOrCreateDataPartition
   # Op6: getDataPartition
-  operationProportion: 0:0:1:0:0:0
+  operationProportion: 10:90:0:0:0:0
   # The precision of result, unit: %
   resultPrecision: 0.1
   # The seed of data random

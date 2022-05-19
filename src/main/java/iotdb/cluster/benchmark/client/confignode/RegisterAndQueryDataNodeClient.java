@@ -19,11 +19,13 @@
 
 package iotdb.cluster.benchmark.client.confignode;
 
-import org.apache.iotdb.confignode.rpc.thrift.DataNodeMessage;
-import org.apache.iotdb.confignode.rpc.thrift.DataNodeRegisterReq;
-import org.apache.iotdb.confignode.rpc.thrift.DataNodeRegisterResp;
+import org.apache.iotdb.common.rpc.thrift.TDataNodeInfo;
+import org.apache.iotdb.common.rpc.thrift.TDataNodeLocation;
+import org.apache.iotdb.common.rpc.thrift.TEndPoint;
+import org.apache.iotdb.confignode.rpc.thrift.TDataNodeInfoResp;
+import org.apache.iotdb.confignode.rpc.thrift.TDataNodeRegisterReq;
+import org.apache.iotdb.confignode.rpc.thrift.TDataNodeRegisterResp;
 import org.apache.iotdb.rpc.TSStatusCode;
-import org.apache.iotdb.service.rpc.thrift.EndPoint;
 
 import iotdb.cluster.benchmark.measurement.Status;
 import iotdb.cluster.benchmark.operation.Operation;
@@ -32,7 +34,6 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
@@ -73,8 +74,11 @@ public class RegisterAndQueryDataNodeClient extends ConfigNodeClient {
   }
 
   private Status write() {
-    EndPoint endPoint = DataNodeEndpointTool.getNextDataNodeEndPoint();
-    DataNodeRegisterReq req = new DataNodeRegisterReq(endPoint);
+    TEndPoint endPoint = DataNodeEndpointTool.getNextDataNodeEndPoint();
+    TDataNodeInfo dataNodeInfo =
+        new TDataNodeInfo(
+            new TDataNodeLocation(1, endPoint, endPoint, endPoint, endPoint), 1, 1024 * 512);
+    TDataNodeRegisterReq req = new TDataNodeRegisterReq(dataNodeInfo);
     Status status;
     try {
       status = doWrite(endPoint, req);
@@ -94,16 +98,16 @@ public class RegisterAndQueryDataNodeClient extends ConfigNodeClient {
     return status;
   }
 
-  private Status doWrite(EndPoint endPoint, DataNodeRegisterReq req) throws TException {
-    DataNodeRegisterResp resp = configNodeClient.registerDataNode(req);
-    if (TSStatusCode.SUCCESS_STATUS.getStatusCode() == resp.registerResult.getCode()) {
-      dataNodeId.add(resp.dataNodeID);
-      idAndEndPointMap.put(resp.dataNodeID, endPoint);
+  private Status doWrite(TEndPoint endPoint, TDataNodeRegisterReq req) throws TException {
+    TDataNodeRegisterResp resp = configNodeClient.registerDataNode(req);
+    if (TSStatusCode.SUCCESS_STATUS.getStatusCode() == resp.getStatus().getCode()) {
+      dataNodeId.add(resp.dataNodeId);
+      idAndEndPointMap.put(resp.dataNodeId, endPoint);
       logger.debug(
           "Client-"
               + clientThreadId
               + " register datanode-"
-              + resp.dataNodeID
+              + resp.dataNodeId
               + " endpoint{ip="
               + endPoint.getIp()
               + ", port="
@@ -119,14 +123,13 @@ public class RegisterAndQueryDataNodeClient extends ConfigNodeClient {
     Integer queryDataNodeId = getNextQueryDataNodeId();
     Status status;
     try {
-      Map<Integer, DataNodeMessage> msgMap = configNodeClient.getDataNodesMessage(queryDataNodeId);
-      status = new Status(true, msgMap.size());
+      TDataNodeInfoResp msgMap = configNodeClient.getDataNodeInfo(queryDataNodeId);
+      status = new Status(true, msgMap.dataNodeInfoMap.size());
     } catch (TException e) {
       if (reconnect()) {
         try {
-          Map<Integer, DataNodeMessage> msgMap =
-              configNodeClient.getDataNodesMessage(queryDataNodeId);
-          status = new Status(true, msgMap.size());
+          TDataNodeInfoResp msgMap = configNodeClient.getDataNodeInfo(queryDataNodeId);
+          status = new Status(true, msgMap.dataNodeInfoMap.size());
         } catch (TException e1) {
           logger.error(e.getMessage());
           status = new Status(false, e, e.getMessage());
